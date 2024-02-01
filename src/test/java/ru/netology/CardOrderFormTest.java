@@ -7,8 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,14 +61,14 @@ public class CardOrderFormTest {
     @Test
     public void testFormSubmissionInvalidName() {
         // Ввод некорректных данных (имя содержит цифры)
-        driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("Пастухова1 Лидия");
+        driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("123");
         driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("+71112225566");
         driver.findElement(By.className("checkbox__box")).click();
         driver.findElement(By.className("button")).click();
 
         // Проверка наличия сообщения об ошибке
-        String errorMessage = driver.findElement(By.cssSelector("[data-test-id=name] .input__sub")).getText();
-        assertEquals("Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы.", errorMessage.trim());
+        String text = driver.findElement(By.cssSelector("[data-test-id=name].input_invalid .input__sub")).getText();
+        assertEquals("Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы.", text.trim());
     }
 
     @Test
@@ -74,41 +79,71 @@ public class CardOrderFormTest {
         driver.findElement(By.className("checkbox__box")).click();
         driver.findElement(By.className("button")).click();
 
-        // Проверка наличия сообщения об ошибке
-        String errorMessage = driver.findElement(By.cssSelector("[data-test-id=phone] .input__sub")).getText();
-        assertEquals("Телефон указан неверно. Должно быть 11 цифр, например, +79012345678.", errorMessage.trim());
+        // Проверка наличия сообщения об ошибке с классом input_invalid
+        String text = driver.findElement(By.cssSelector("[data-test-id=phone].input_invalid .input__sub")).getText();
+        assertEquals("Телефон указан неверно. Должно быть 11 цифр, например, +79012345678.", text.trim());
     }
 
 
     @Test
-    public void testFormSubmissionUncheckedCheckbox() {
-        // Ввод корректных данных, но без установленного чекбокса
+    public void testFormSubmissionInvalidCheckbox() {
+        // Ввод корректных данных
         driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("Пастухова Лидия");
         driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("+71112225566");
-        // Не устанавливаем чекбокс
+
+        // Нажатие кнопки без выбора чекбокса согласия
         driver.findElement(By.className("button")).click();
 
-        // Проверка наличия сообщения об ошибке
-        String errorMessage = driver.findElement(By.cssSelector("[data-test-id=agreement] .checkbox__text")).getText();
-        assertEquals("Я соглашаюсь с условиями обработки и использования моих персональных данных и разрешаю сделать запрос в бюро кредитных историй", errorMessage.trim());
+        // Ожидание появления элемента чекбокса согласия с классом input_invalid
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        WebElement invalidCheckbox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[data-test-id=agreement].input_invalid .checkbox__text")));
+
+        // Проверка, что элемент отображается на странице
+        assertTrue(invalidCheckbox.isDisplayed(), "Я соглашаюсь с условиями обработки и использования моих персональных данных и разрешаю сделать запрос в бюро кредитных историй");
     }
 
     @Test
-    public void testFormSubmissionEmptyFields() {
-        // Ввод пустых данных
+    public void testFormSubmissionInvalidNameEmpty() {
+        // Ввод некорректных данных (имя пустое)
         driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("");
-        driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("");
+        driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("+71112225566");
+        driver.findElement(By.className("checkbox__box")).click();
         driver.findElement(By.className("button")).click();
 
-        // Проверка наличия сообщений об ошибке для каждого поля
-        String nameErrorMessage = driver.findElement(By.cssSelector("[data-test-id=name] .input__sub")).getText();
-        assertEquals("Поле обязательно для заполнения", nameErrorMessage.trim());
-
-        String phoneErrorMessage = driver.findElement(By.cssSelector("[data-test-id=phone] .input__sub")).getText();
-        assertEquals("Поле обязательно для заполнения", phoneErrorMessage.trim());
+        // Проверка наличия сообщения об ошибке
+        String text = driver.findElement(By.cssSelector("[data-test-id=name].input_invalid .input__sub")).getText();
+        assertEquals("Поле обязательно для заполнения", text.trim());
     }
-}
 
+    @Test
+    public void testFormSubmissionInvalidPhoneEmpty() {
+        // Ввод некорректных данных (телефон пусто)
+        driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("Пастухова Лидия");
+        driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("");
+        driver.findElement(By.className("checkbox__box")).click();
+        driver.findElement(By.className("button")).click();
+
+        // Проверка наличия сообщения об ошибке с классом input_invalid
+        String text = driver.findElement(By.cssSelector("[data-test-id=phone].input_invalid .input__sub")).getText();
+        assertEquals("Поле обязательно для заполнения", text.trim());
+    }
+
+
+    @Test
+    public void testFormSubmissionInvalidPhoneEmpty1() {
+        // Ввод некорректных данных (телефон пусто)
+        driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("");
+        driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("");
+        driver.findElement(By.className("checkbox__box")).click();
+        driver.findElement(By.className("button")).click();
+
+
+        // Проверка наличия сообщения об ошибке с классом input_invalid
+        String text = driver.findElement(By.cssSelector("[data-test-id=name].input_invalid .input__sub")).getText();
+        assertEquals("Поле обязательно для заполнения", text.trim());
+    }
+
+}
 
 
 
