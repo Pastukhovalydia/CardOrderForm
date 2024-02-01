@@ -131,7 +131,7 @@ public class CardOrderFormTest {
 
     @Test
     public void testFormSubmissionInvalidPhoneEmpty1() {
-        // Ввод некорректных данных (телефон пусто)
+        // Пустые поля
         driver.findElement(By.cssSelector("[data-test-id=name] input")).sendKeys("");
         driver.findElement(By.cssSelector("[data-test-id=phone] input")).sendKeys("");
         driver.findElement(By.className("checkbox__box")).click();
